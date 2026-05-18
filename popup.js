@@ -9,12 +9,12 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     chrome.tabs.sendMessage(tabId, { type: "GET_QUERY"}, (response) => {
-      if (chrome.runtime.lastError || response) {
+      if (chrome.runtime.lastError || !response) {
         status.textContent = "No search query detected on this page.";
         return;
       }
       const query = response.query;
-      if (!query || query.length < 0){
+      if (!query || query.length < 3){
         status.textContent = "No search query detected on this page.";
         return;
       }
