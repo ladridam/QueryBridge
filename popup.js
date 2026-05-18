@@ -72,10 +72,15 @@ document.addEventListener("DOMContentLoaded", () => {
     status.textContent = "";
     suggestionsEl.innerHTML = "";
 
+    const countEl = document.getElementById("result-count");
+
     if (!suggestions || suggestions.length === 0) {
       showStatus("No suggestions returned. Try a different query.");
+      if (countEl) countEl.textContent = "";
       return;
     }
+
+    if (countEl) countEl.textContent = suggestions.length + " suggestions";
 
     suggestions.forEach((text) => {
       const card = document.createElement("div");
@@ -87,12 +92,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const copyBtn = document.createElement("button");
       copyBtn.className = "copy-btn";
-      copyBtn.title = "Copy";
+       copyBtn.title = "Copy";
       copyBtn.textContent = "Copy";
 
-      copyBtn.addEventListener("click", (e) => {
+     copyBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        navigator.clipboard.writeText(text).then(() => {
+       navigator.clipboard.writeText(text).then(() => {
           copyBtn.textContent = "Copied";
           copyBtn.classList.add("copied");
           setTimeout(() => {
