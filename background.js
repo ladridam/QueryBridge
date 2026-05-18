@@ -15,6 +15,8 @@ async function handleRefine(query) {
     return { error: "No API key found. Please set it in the extension options." };
   }
 
+
+  //prompt for Gemini-2.5-flash
   const prompt = `You are a search query refinement assistant. A user has typed a vague or broad search query. Your job is to rewrite it into 4 improved alternatives that are more specific, precise, and domain-aware.
 
 Original query: "${query}"

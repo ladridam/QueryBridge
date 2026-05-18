@@ -1,18 +1,27 @@
 document.addEventListener("DOMContentLoaded", () => {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    const url = tabs[0]?.url || "";
-    const raw = extractQuery(url);
-    const query = cleanQuery(raw);
-    const status = document.getElementById("status");
+  const status = document.getElementById("status");
 
-    if (!query || query.length < 3) {
-      status.textContent = "No search query detected on this page.";
+  chrome.tabs.query({ active: true, currentWindow: true}, (tabs) => {
+    const tabId = tabs[0]?.id;
+
+    if (!tabId) { 
+      status.textContent = "Error: No active tab found.";
       return;
     }
-
-    status.textContent = "Detected: " + query + " — calling Gemini...";
-    sendWithRetry({ type: "REFINE_QUERY", query }, 3, status);
-  });
+    chrome.tabs.sendMessage(tabId, { type: "GET_QUERY"}, (response) => {
+      if (chrome.runtime.lastError || response) {
+        status.textContent = "No search query detected on this page.";
+        return;
+      }
+      const query = response.query;
+      if (!query || query.length < 0){
+        status.textContent = "No search query detected on this page.";
+        return;
+      }
+      status.textContent = "Detected: " + query + " - calling Gemini...";
+      sendWithRetry({ type: "REFINE_QUERY", query }, 3, status);
+    })
+  })
 });
 
 function sendWithRetry(message, retriesLeft, status) {
@@ -32,40 +41,4 @@ function sendWithRetry(message, retriesLeft, status) {
     console.log("Suggestions received:", response.suggestions);
     status.textContent = "Success. Open DevTools console to see suggestions.";
   });
-}
-
-function extractQuery(url) {
-  try {
-    const parsed = new URL(url);
-    const host = parsed.hostname;
-    const params = parsed.searchParams;
-
-    if (host.includes("google.com")) {
-      return params.get("q") || "";
-    }
-    if (host.includes("bing.com")) {
-      return params.get("q") || "";
-    }
-    if (host.includes("duckduckgo.com")) {
-      return params.get("q") || "";
-    }
-    if (host.includes("yahoo.com")) {
-      return params.get("p") || "";
-    }
-    if (host.includes("baidu.com")) {
-      return params.get("wd") || "";
-    }
-    if (host.includes("yandex.com")) {
-      return params.get("text") || "";
-    }
-    return "";
-
-  } catch {
-    return "";
-  }
-}
-
-function cleanQuery(raw){
-  if (!raw) return "";
-  return decodeURIComponent(raw.replace(/\+/g, ' ')).trim();
 }
