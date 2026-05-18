@@ -1,10 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const url = tabs[0]?.url || "";
-    const query = extractQuery(url);
+    const raw = extractQuery(url);
+    const query = cleanQuery(raw);
     const status = document.getElementById("status");
 
-    if (!query) {
+    if (!query || query.length < 3) {
       status.textContent = "No search query detected on this page.";
       return;
     }
@@ -62,4 +63,9 @@ function extractQuery(url) {
   } catch {
     return "";
   }
+}
+
+function cleanQuery(raw){
+  if (!raw) return "";
+  return decodeURIComponent(raw.replace(/\+/g, ' ')).trim();
 }
