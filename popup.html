@@ -1,24 +1,250 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>QueryBridge</title>
   <style>
-    body {
-      width: 340px;
-      min-height: 120px;
+    * {
+      box-sizing: border-box;
       margin: 0;
-      padding: 16px;
-      font-family: sans-serif;
-      font-size: 14px;
+      padding: 0;
     }
+
+    body {
+      width: 360px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      background: #ffffff;
+      color: #1a1a1a;
+    }
+
+    #header {
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid #ebebeb;
+    }
+
+    #header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    #header h1 {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      color: #1a1a1a;
+    }
+
+    #result-count {
+      font-size: 11px;
+      color: #aaa;
+    }
+
+    #original-query {
+      font-size: 12px;
+      color: #999;
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #body {
+      padding: 10px 16px 14px;
+    }
+
     #status {
-      color: #666;
+      font-size: 13px;
+      color: #999;
+      padding: 10px 0;
+      text-align: center;
+    }
+
+    .suggestion-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      margin-bottom: 7px;
+      border: 1px solid #e8e8e8;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s;
+    }
+
+    .suggestion-card:last-child {
+      margin-bottom: 0;
+    }
+
+    .suggestion-card:hover {
+      background: #f7f7f7;
+      border-color: #d0d0d0;
+    }
+
+    .suggestion-text {
+      font-size: 13px;
+      color: #1a1a1a;
+      line-height: 1.45;
+      flex: 1;
+    }
+
+    .copy-btn {
+      flex-shrink: 0;
+      background: none;
+      border: 1px solid #e0e0e0;
+      cursor: pointer;
+      padding: 3px 8px;
+      color: #999;
+      font-size: 11px;
+      border-radius: 4px;
+      transition: color 0.12s, border-color 0.12s;
+    }
+
+    .copy-btn:hover {
+      color: #444;
+      border-color: #bbb;
+    }
+
+    .copy-btn.copied {
+      color: #2a7a2a;
+      border-color: #2a7a2a;
+    }
+
+    #footer {
+      padding: 8px 16px 11px;
+      border-top: 1px solid #ebebeb;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    #options-link {
+      font-size: 11px;
+      color: #bbb;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      transition: color 0.12s;
+    }
+
+    #options-link:hover {
+      color: #555;
+    }
+
+    .skeleton {
+      height: 44px;
+      background: #f3f3f3;
+      border-radius: 8px;
+      margin-bottom: 7px;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.45;
+      }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #1c1c1e;
+        color: #f0f0f0;
+      }
+
+      #header {
+        border-bottom-color: #2e2e2e;
+      }
+
+      #header h1 {
+        color: #f0f0f0;
+      }
+
+      #original-query {
+        color: #666;
+      }
+
+      #result-count {
+        color: #555;
+      }
+
+      #status {
+        color: #666;
+      }
+
+      .suggestion-card {
+        border-color: #2e2e2e;
+      }
+
+      .suggestion-card:hover {
+        background: #252527;
+        border-color: #3a3a3a;
+      }
+
+      .suggestion-text {
+        color: #e8e8e8;
+      }
+
+      .copy-btn {
+        color: #666;
+        border-color: #2e2e2e;
+      }
+
+      .copy-btn:hover {
+        color: #bbb;
+        border-color: #555;
+      }
+
+      .copy-btn.copied {
+        color: #4caf50;
+        border-color: #4caf50;
+      }
+
+      #footer {
+        border-top-color: #2e2e2e;
+      }
+
+      #options-link {
+        color: #444;
+      }
+
+      #options-link:hover {
+        color: #aaa;
+      }
+
+      .skeleton {
+        background: #2a2a2c;
+      }
     }
   </style>
 </head>
+
 <body>
-  <p id="status">Loading query...</p>
-  <script src="popup.js"></script>
+  <div id="header">
+    <div id="header-top">
+      <h1>QueryBridge</h1>
+      <span id="result-count"></span>
+    </div>
+    <div id="original-query"></div>
+  </div>
+
+  <div id="body">
+    <div id="status"></div>
+    <div id="suggestions"></div>
+  </div>
+
+  <div id="footer"><button id="options-link">Settings</button></div>
+
+
+  <script src="popup.js" defer></script>
 </body>
+
 </html>
