@@ -35,8 +35,30 @@ function sendWithRetry(message, retriesLeft, status) {
 
 function extractQuery(url) {
   try {
-    const params = new URL(url).searchParams;
-    return params.get("q") || params.get("p") || "";
+    const parsed = new URL(url);
+    const host = parsed.hostname;
+    const params = parsed.searchParams;
+
+    if (host.includes("google.com")) {
+      return params.get("q") || "";
+    }
+    if (host.includes("bing.com")) {
+      return params.get("q") || "";
+    }
+    if (host.includes("duckduckgo.com")) {
+      return params.get("q") || "";
+    }
+    if (host.includes("yahoo.com")) {
+      return params.get("p") || "";
+    }
+    if (host.includes("baidu.com")) {
+      return params.get("wd") || "";
+    }
+    if (host.includes("yandex.com")) {
+      return params.get("text") || "";
+    }
+    return "";
+
   } catch {
     return "";
   }
