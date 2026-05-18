@@ -2,10 +2,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const status = document.getElementById("status");
   const suggestionsEl = document.getElementById("suggestions");
   const originalQueryEl = document.getElementById("original-query");
+  const errorBox = document.getElementById("error-box");
+  const errorMsg = document.getElementById("error-msg");
+  const retryBtn = document.getElementById("retry-btn");
+  const noKeyBox = document.getElementById("no-key-box");
+  const countEl = document.getElementById("result-count");
 
   document.getElementById("options-link").addEventListener("click", () => {
     chrome.runtime.openOptionsPage();
   });
+
+  document.getElementById("go-to-options-btn").addEventListener("click", () => {
+    chrome.runtime.openOptionsPage();
+  });
+
+  let currentQuery = null;
 
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const tabId = tabs[0]?.id;
@@ -28,12 +39,31 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      currentQuery = query;
       originalQueryEl.textContent = "\"" + query + "\"";
       showSkeleton();
-
-      sendWithRetry({ type: "REFINE_QUERY", query }, 3);
+      refine(query);
     });
   });
+
+  retryBtn.addEventListener("click", () => {
+    if (currentQuery) {
+      hideError();
+      showSkeleton();
+      refine(currentQuery);
+    }
+  });
+
+  function refine(query) {
+    chrome.storage.local.get("geminiApiKey", (data) => {
+      if (!data.geminiApiKey) {
+        hideSkeleton();
+        noKeyBox.style.display = "block";
+        return;
+      }
+      sendWithRetry({ type: "REFINE_QUERY", query }, 3);
+    });
+  }
 
   function sendWithRetry(message, retriesLeft) {
     chrome.runtime.sendMessage(message, (response) => {
@@ -41,12 +71,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (retriesLeft > 0) {
           setTimeout(() => sendWithRetry(message, retriesLeft - 1), 300);
         } else {
-          showStatus("Could not reach background worker. Try reloading the extension.");
+          showError("Could not reach the background worker. Try reloading the extension.");
         }
         return;
       }
       if (!response || response.error) {
-        showStatus("Error: " + (response?.error || "Empty response."));
+        showError(response?.error || "Empty response from Gemini.");
         return;
       }
       renderSuggestions(response.suggestions);
@@ -56,10 +86,14 @@ document.addEventListener("DOMContentLoaded", () => {
   function showStatus(text) {
     status.textContent = text;
     suggestionsEl.innerHTML = "";
+    hideError();
+    noKeyBox.style.display = "none";
   }
 
   function showSkeleton() {
     status.textContent = "";
+    hideError();
+    noKeyBox.style.display = "none";
     suggestionsEl.innerHTML = `
       <div class="skeleton"></div>
       <div class="skeleton"></div>
@@ -68,11 +102,28 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
+  function hideSkeleton() {
+    suggestionsEl.innerHTML = "";
+  }
+
+  function showError(text) {
+    hideSkeleton();
+    status.textContent = "";
+    errorMsg.textContent = text;
+    errorBox.style.display = "block";
+    if (countEl) countEl.textContent = "";
+  }
+
+  function hideError() {
+    errorBox.style.display = "none";
+    errorMsg.textContent = "";
+  }
+
   function renderSuggestions(suggestions) {
     status.textContent = "";
     suggestionsEl.innerHTML = "";
-
-    const countEl = document.getElementById("result-count");
+    hideError();
+    noKeyBox.style.display = "none";
 
     if (!suggestions || suggestions.length === 0) {
       showStatus("No suggestions returned. Try a different query.");
@@ -92,12 +143,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const copyBtn = document.createElement("button");
       copyBtn.className = "copy-btn";
-       copyBtn.title = "Copy";
+      copyBtn.title = "Copy";
       copyBtn.textContent = "Copy";
 
-     copyBtn.addEventListener("click", (e) => {
+      copyBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-       navigator.clipboard.writeText(text).then(() => {
+        navigator.clipboard.writeText(text).then(() => {
           copyBtn.textContent = "Copied";
           copyBtn.classList.add("copied");
           setTimeout(() => {
