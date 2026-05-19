@@ -10,11 +10,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const countEl = document.getElementById("result-count");
 
   document.getElementById("options-link").addEventListener("click", () => {
-    chrome.runtime.openOptionsPage();
+    chrome.tabs.create({ url: chrome.runtime.getURL("options.html") });
   });
 
   document.getElementById("go-to-options-btn").addEventListener("click", () => {
-    chrome.runtime.openOptionsPage();
+    chrome.tabs.create({ url: chrome.runtime.getURL("options.html") });
   });
 
   let currentQuery = null;
