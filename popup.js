@@ -187,8 +187,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       card.addEventListener("click", () => {
         document.querySelectorAll(".tooltip.visible").forEach(t => t.classList.remove("visible"));
-        const searchUrl = "https://www.google.com/search?q=" + encodeURIComponent(text);
-        chrome.tabs.create({ url: searchUrl });
+        chrome.storage.local.get("preferredEngine", (data) => {
+          const engine = data.preferredEngine || "google";
+          const searchUrl = buildSearchUrl(engine, text);
+          chrome.tabs.create({ url: searchUrl });
+        });
       });
 
       btnGroup.appendChild(whyBtn);
@@ -205,3 +208,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   
 });
+
+function buildSearchUrl(engine, query) {
+  const encoded = encodeURIComponent(query);
+  switch (engine) {
+    case "bing":        return `https://www.bing.com/search?q=${encoded}`;
+    case "duckduckgo":  return `https://duckduckgo.com/?q=${encoded}`;
+    case "yahoo":       return `https://search.yahoo.com/search?p=${encoded}`;
+    case "yandex":      return `https://yandex.com/search/?text=${encoded}`;
+    default:            return `https://www.google.com/search?q=${encoded}`;
+  }
+}
