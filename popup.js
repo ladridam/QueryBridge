@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const status = document.getElementById("status");
   const suggestionsEl = document.getElementById("suggestions");
   const originalQueryEl = document.getElementById("original-query");
+  const domainTag = document.getElementById("domain-tag");
   const errorBox = document.getElementById("error-box");
   const errorMsg = document.getElementById("error-msg");
   const retryBtn = document.getElementById("retry-btn");
@@ -79,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showError(response?.error || "Empty response from Gemini.");
         return;
       }
-      renderSuggestions(response.suggestions);
+      renderSuggestions(response.suggestions, response.domain);
     });
   }
 
@@ -124,6 +125,15 @@ document.addEventListener("DOMContentLoaded", () => {
     suggestionsEl.innerHTML = "";
     hideError();
     noKeyBox.style.display = "none";
+
+    if (domainTag) {
+      if (domain && domain !== "general"){
+        domainTag.textContent = domain;
+        domainTag.style.display = "inline-block";
+      } else {
+        domainTag.style.display = "none";
+      }
+    }
 
     if (!suggestions || suggestions.length === 0) {
       showStatus("No suggestions returned. Try a different query.");

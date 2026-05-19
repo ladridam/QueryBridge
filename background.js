@@ -7,6 +7,35 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
+function detectDomain(query){
+  const q = query.toLowerCase();
+
+  const domains = [
+    {
+      name : "medical",
+      keywords: ["disease", "symptom", "treatment", "diagnosis", "medicine", "drug", "pain", "infection", "surgery", "therapy", "disorder", "cancer", "virus", "bacteria", "health", "clinical", "patient"]
+    },
+    {
+      name: "academic",
+      keywords: ["research", "study", "paper", "journal", "theory", "literature", "hypothesis", "experiment", "citation", "thesis", "peer review", "methodology", "findings", "analysis", "survey"]
+    },
+    {
+      name: "technical",
+      keywords: ["code", "programming", "software", "algorithm", "database", "api", "framework", "debug", "function", "library", "server", "network", "linux", "python", "javascript", "css", "html", "react", "git", "docker", "deploy", "error", "bug"]
+    },
+    {
+      name: "financial",
+      keywords: ["stock", "investment", "market", "finance", "tax", "budget", "loan", "interest", "inflation", "economy", "crypto", "fund", "portfolio", "dividend", "equity", "revenue", "profit"]
+    }
+  ];
+  for (const domain of domains) {
+    if (domain.keywords.some(kw => q.includes(kw))) {
+      return domain.name;
+    }
+  }
+  return "general";
+}
+
 async function handleRefine(query) {
   const stored = await chrome.storage.local.get("geminiApiKey");
   const apiKey = stored.geminiApiKey;
@@ -15,11 +44,13 @@ async function handleRefine(query) {
     return { error: "No API key found. Please set it in the extension options." };
   }
 
+  const domain = detectDomain(query);
 
   //prompt for Gemini-2.5-flash
   const prompt = `You are a search query refinement assistant. A user has typed a vague or broad search query. Your job is to rewrite it into 4 improved alternatives that are more specific, precise, and domain-aware.
 
   Original query: "${query}"
+  Detected domain: ${domain}
 
   Rules:
   - Preserve the user's original intent exactly — do not change what they are looking for
@@ -74,7 +105,7 @@ async function handleRefine(query) {
         });
       }
     }
-    return { suggestions };
+    return { suggestions, domain };
 
   } catch (err) {
     return { error: "Network error: " + err.message };
