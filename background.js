@@ -19,18 +19,28 @@ async function handleRefine(query) {
   //prompt for Gemini-2.5-flash
   const prompt = `You are a search query refinement assistant. A user has typed a vague or broad search query. Your job is to rewrite it into 4 improved alternatives that are more specific, precise, and domain-aware.
 
-Original query: "${query}"
+  Original query: "${query}"
 
-Rules:
-- Preserve the user's original intent exactly — do not change what they are looking for
-- Infer the most likely domain (academic, medical, technical, legal, general) from the query and phrase suggestions accordingly
-- Each suggestion should reflect how an expert or experienced researcher in that domain would phrase the search
-- Suggestions should be diverse — approach the intent from different angles, not minor variations of each other
-- Use search-optimised phrasing: specific terms, relevant qualifiers, named concepts where appropriate
-- Do not add explanations, numbering, bullet points, or any extra text
-- Return exactly 4 suggestions, one per line, nothing else
+  Rules:
+  - Preserve the user's original intent exactly — do not change what they are looking for
+  - Infer the most likely domain (academic, medical, technical, legal, general) from the query and phrase suggestions accordingly
+  - Each suggestion should reflect how an expert or experienced researcher in that domain would phrase the search
+  - Suggestions should be diverse — approach the intent from different angles, not minor variations of each other
+  - Use search-optimised phrasing: specific terms, relevant qualifiers, named concepts where appropriate
+  - For each suggestion, provide a single short reason (max 10 words) explaining why it is more effective
+  - Return exactly 4 suggestions in this exact format, nothing else:
 
-Refined queries:`;
+  QUERY: <refined query>
+  REASON: <short reason>
+
+  QUERY: <refined query>
+  REASON: <short reason>
+
+  QUERY: <refined query>
+  REASON: <short reason>
+
+  QUERY: <refined query>
+  REASON: <short reason>`;
 
   try {
     const response = await fetch(
@@ -51,11 +61,19 @@ Refined queries:`;
     }
 
     const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    const suggestions = raw
-      .split("\n")
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
+    const suggestions = [];
+    const blocks = raw.trim().split(/\n\s*\n/);
+    for (const block of blocks) {
+      const queryMatch = block.match(/QUERY:\s*(.+)/i);
+      const reasonMatch = block.match(/REASON:\s*(.+)/i);
 
+      if (queryMatch && reasonMatch) {
+        suggestions.push({
+          query: queryMatch[1].trim(),
+          reason: reasonMatch[1].trim()
+        });
+      }
+    }
     return { suggestions };
 
   } catch (err) {

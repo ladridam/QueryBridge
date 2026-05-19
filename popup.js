@@ -133,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (countEl) countEl.textContent = suggestions.length + " suggestions";
 
-    suggestions.forEach((text) => {
+    suggestions.forEach(({ query: text, reason }) => {
       const card = document.createElement("div");
       card.className = "suggestion-card";
 
@@ -141,11 +141,28 @@ document.addEventListener("DOMContentLoaded", () => {
       label.className = "suggestion-text";
       label.textContent = text;
 
+      const btnGroup = document.createElement("div");
+      btnGroup.style.display = "flex";
+      btnGroup.style.gap = "4px";
+      btnGroup.style.flexShrink = "0";
+
+      const tooltip = document.createElement("div");
+      tooltip.className = "tooltip";
+      tooltip.textContent = reason || "More specific phrasing for better results.";
+
+      const whyBtn = document.createElement("button");
+      whyBtn.className = "why-btn";
+      whyBtn.textContent = "Why?";
+      whyBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isVisible = tooltip.classList.contains("visible");
+        document.querySelectorAll(".tooltip.visible").forEach(t => t.classList.remove("visible"));
+        if (!isVisible) tooltip.classList.add("visible");
+      });
+
       const copyBtn = document.createElement("button");
       copyBtn.className = "copy-btn";
-      copyBtn.title = "Copy";
       copyBtn.textContent = "Copy";
-
       copyBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         navigator.clipboard.writeText(text).then(() => {
@@ -159,13 +176,22 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       card.addEventListener("click", () => {
+        document.querySelectorAll(".tooltip.visible").forEach(t => t.classList.remove("visible"));
         const searchUrl = "https://www.google.com/search?q=" + encodeURIComponent(text);
         chrome.tabs.create({ url: searchUrl });
       });
 
+      btnGroup.appendChild(whyBtn);
+      btnGroup.appendChild(copyBtn);
+      card.appendChild(tooltip);
       card.appendChild(label);
-      card.appendChild(copyBtn);
+      card.appendChild(btnGroup);
       suggestionsEl.appendChild(card);
     });
+
+    document.addEventListener("click", () => {
+      document.querySelectorAll(".tooltip.visible").forEach(t => t.classList.remove("visible"));
+    }, { once: false });
   }
+  
 });
