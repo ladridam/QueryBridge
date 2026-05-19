@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
     errorMsg.textContent = "";
   }
 
-  function renderSuggestions(suggestions) {
+  function renderSuggestions(suggestions, domain) {
     status.textContent = "";
     suggestionsEl.innerHTML = "";
     hideError();
