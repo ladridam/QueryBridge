@@ -4,6 +4,8 @@ A Chrome extension that sits between what you mean and what you type.
 
 Given a vague or broad search query, QueryBridge returns domain-aware, precise alternatives — refined phrasings that reflect the actual intent behind the original words. Each suggestion is designed to surface more relevant, specific results than the original query would have.
 
+<img width="737" height="520" alt="QB query list" src="https://github.com/user-attachments/assets/bac11179-644a-449b-aef3-4bc1d19bbf70" />
+
 ---
 
 ## The problem
